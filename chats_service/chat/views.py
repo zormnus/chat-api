@@ -7,10 +7,10 @@ from .models import Message, Room
 from .serializers import ChatSerializer, MessageSerializer
 
 
-class ChatsView(mixins.CreateModelMixin,
-                mixins.DestroyModelMixin,
-                mixins.ListModelMixin,
-                GenericViewSet):
+class ChatView(mixins.CreateModelMixin,
+               mixins.DestroyModelMixin,
+               mixins.ListModelMixin,
+               GenericViewSet):
     """
     View для Создания, удаления и получения чатов
     """
@@ -31,6 +31,7 @@ class RoomMessages(APIView):
     """
     View для получения всех сообщений из определённого чата
     """
+
     def get(self, request, room_uuid):
         room = Room.objects.get(uuid=room_uuid)
         messages = list(room.messages.values('body', 'created_by__username',
