@@ -1,3 +1,6 @@
+import jwt
+from django.conf import settings
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from rest_framework import mixins
 from rest_framework.views import APIView
@@ -16,6 +19,16 @@ class ChatView(mixins.CreateModelMixin,
     """
     serializer_class = ChatSerializer
     queryset = Room.objects.all()
+
+    def perform_create(self, serializer):
+        token = self.request.META.get('HTTP_AUTHORIZATION')[7:]
+        if token:
+            payload = jwt.decode(
+                token, settings.SECRET_KEY, algorithms=['HS256'])
+            user_id = payload.get('user_id')
+            user = User.objects.get(id=user_id)
+            serializer.save(creator=user,
+                            url="http://localhost:8000/chats/chats_manage/chats/")
 
 
 class MessageView(mixins.CreateModelMixin,

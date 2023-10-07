@@ -35,15 +35,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     async def chat_message(self, event):
-        decoded_message = event["message"]
+        data = json.loads(event["message"])
         saved_message = await self.message_create(
-            message_body=decoded_message,
-            created_by=self.scope['user'])
+            message_body=data["message"],
+            created_by=await self.get_user(data["sender"]))
+        print(saved_message)
         await self.room_extend(saved_message)
-        await self.send(text_data=decoded_message)
+        to_client = json.dumps({"body":
+                                saved_message.body,
+                                "created_at":
+                                saved_message.created_at.isoformat(),
+                                "created_by__username":
+                                saved_message.created_by.username})
+        await self.send(text_data=to_client)
 
     @database_sync_to_async
-    def message_create(self, message_body, created_by):
+    def message_create(self, message_body, created_by) -> Message:
         message = Message.objects.create(
             body=message_body, created_by=created_by
         )
@@ -57,3 +64,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def room_extend(self, message):
         self.bd_room.messages.add(message)
+
+    @database_sync_to_async
+    def get_user(self, username):
+        return User.objects.get(username=username)
