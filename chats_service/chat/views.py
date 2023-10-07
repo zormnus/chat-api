@@ -37,3 +37,7 @@ class RoomMessages(APIView):
         messages = list(room.messages.values('body', 'created_by__username',
                                              'created_at'))
         return JsonResponse({"messages": messages})
+
+
+def get_room_uuid(request, room_uuid):
+    return JsonResponse({"id": Room.objects.get(uuid=room_uuid).pk})
